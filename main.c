@@ -5,7 +5,7 @@
 #include <sys/utime.h>
 
 #define PROGRAM_NAME "boop"
-#define PROGRAM_VERSION "0.1.2"
+#define PROGRAM_VERSION "0.1.3"
 
 typedef enum { TRUE, FALSE } HelpFlag;
 
@@ -57,6 +57,7 @@ void boop(char *filename) {
     if (fp) {
         if (check_exists) {
             printf("file %s does exist\n", filename);
+            fclose(fp);
             return;
         }
 
@@ -103,9 +104,9 @@ void boop(char *filename) {
         if (check_exists) {
             printf("file %s does NOT exist\n", filename);
         }
-    }
 
-    fclose(fp);
+        fclose(fp);
+    }
 }
 
 int main(int argc, char *argv[]) {
