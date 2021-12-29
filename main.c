@@ -7,11 +7,7 @@
 #define PROGRAM_NAME "boop"
 #define PROGRAM_VERSION "0.1.0"
 
-typedef enum
-{
-    TRUE,
-    FALSE
-} HelpFlag;
+typedef enum { TRUE, FALSE } HelpFlag;
 
 static int check_exists;
 
@@ -23,30 +19,25 @@ static int change_mdate;
 
 static char *timestamp;
 
-void print_usage(HelpFlag hf_val)
-{
+void print_usage(HelpFlag hf_val) {
     printf("usage: %s [ARGUMENT] FILE ...\n", PROGRAM_NAME);
 
-    if (hf_val == TRUE)
-    {
+    if (hf_val == TRUE) {
         printf("\n\t-c\n\t\tcheck if file exist\n");
         printf("\n\t-r\n\t\tremove if file exist\n");
-        printf("\n\t-a\n\t\tchange the access time of the file\n");
-        printf("\n\t-m\n\t\tchange the modification time of the file\n");
+        printf("\n\t-a\n\t\tchange the file access time\n");
+        printf("\n\t-m\n\t\tchange the file modification\n");
         printf("\n\t-t STAMP\n\t\tuse timestamp in format YYYYMMDDhhmm\n");
         printf("\n\t--help\n\t\tshow this help message and exit\n");
         printf("\n\t--version\n\t\tshow version information and exit\n");
     }
 }
 
-void boop(char *filename)
-{
-    if (remove_file)
-    {
+void boop(char *filename) {
+    if (remove_file) {
         int err = remove(filename);
 
-        if (err)
-        {
+        if (err) {
             print_usage(TRUE);
             exit(EXIT_FAILURE);
         }
@@ -55,25 +46,20 @@ void boop(char *filename)
     }
 
     FILE *fp;
-    if (check_exists || (change_adate && !change_mdate))
-    {
+    if (check_exists || (change_adate && !change_mdate)) {
         fp = fopen(filename, "r");
     }
-    else
-    {
+    else {
         fp = fopen(filename, "w");
     }
 
-    if (fp)
-    {
-        if (check_exists)
-        {
+    if (fp) {
+        if (check_exists) {
             printf("file %s does exist\n", filename);
             return;
         }
 
-        if (timestamp)
-        {
+        if (timestamp) {
             time_t epoch_a;
             time_t epoch_m;
             struct utimbuf ubuf;
@@ -107,10 +93,8 @@ void boop(char *filename)
             utime(filename, &ubuf);
         }
     }
-    else
-    {
-        if (check_exists)
-        {
+    else {
+        if (check_exists) {
             printf("file %s does NOT exist\n", filename);
         }
     }
@@ -118,57 +102,44 @@ void boop(char *filename)
     fclose(fp);
 }
 
-int main(int argc, char *argv[])
-{
-    if (argc < 2)
-    {
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
         print_usage(FALSE);
         exit(EXIT_FAILURE);
     }
 
-    if (argc == 2)
-    {
-        if (strcmpi("--help", *(argv + 1)) == 0)
-        {
+    if (argc == 2) {
+        if (strcmpi("--help", *(argv + 1)) == 0) {
             print_usage(TRUE);
             exit(EXIT_SUCCESS);
         }
-        else if (strcmpi("--version", *(argv + 1)) == 0)
-        {
+        else if (strcmpi("--version", *(argv + 1)) == 0) {
             printf("%s version %s", PROGRAM_NAME, PROGRAM_VERSION);
             exit(EXIT_SUCCESS);
         }
     }
 
     int i;
-    for (i = 1; i < argc; i++)
-    {
-        if (*(*(argv + i)) != '-')
-        {
+    for (i = 1; i < argc; i++) {
+        if (*(*(argv + i)) != '-') {
             break;
         }
 
-        if (strcmpi("-c", *(argv + i)) == 0)
-        {
+        if (strcmpi("-c", *(argv + i)) == 0) {
             check_exists = 1;
         }
-        else if (strcmpi("-r", *(argv + i)) == 0)
-        {
+        else if (strcmpi("-r", *(argv + i)) == 0) {
             remove_file = 1;
         }
-        else if (strcmpi("-a", *(argv + i)) == 0)
-        {
+        else if (strcmpi("-a", *(argv + i)) == 0) {
             change_adate = 1;
         }
-        else if (strcmpi("-m", *(argv + i)) == 0)
-        {
+        else if (strcmpi("-m", *(argv + i)) == 0) {
             change_mdate = 1;
         }
-        else if (strcmpi("-t", *(argv + i)) == 0)
-        {
+        else if (strcmpi("-t", *(argv + i)) == 0) {
             i++;
-            if (*(*(argv + i)) == '-')
-            {
+            if (*(*(argv + i)) == '-') {
                 print_usage(TRUE);
                 exit(EXIT_FAILURE);
             }
@@ -176,15 +147,13 @@ int main(int argc, char *argv[])
             timestamp = (char *)malloc(sizeof(argv[i]));
             timestamp = argv[i];
         }
-        else
-        {
+        else {
             print_usage(TRUE);
             exit(EXIT_FAILURE);
         }
     }
 
-    for (; i < argc; i++)
-    {
+    for (; i < argc; i++) {
         boop(*(argv + i));
     }
 
