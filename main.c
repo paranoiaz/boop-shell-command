@@ -5,7 +5,7 @@
 #include <sys/utime.h>
 
 #define PROGRAM_NAME "boop"
-#define PROGRAM_VERSION "0.1.0"
+#define PROGRAM_VERSION "0.1.1"
 
 typedef enum { TRUE, FALSE } HelpFlag;
 
@@ -26,7 +26,7 @@ void print_usage(HelpFlag hf_val) {
         printf("\n\t-c\n\t\tcheck if file exist\n");
         printf("\n\t-r\n\t\tremove if file exist\n");
         printf("\n\t-a\n\t\tchange the file access time\n");
-        printf("\n\t-m\n\t\tchange the file modification\n");
+        printf("\n\t-m\n\t\tchange the file modification time\n");
         printf("\n\t-t STAMP\n\t\tuse timestamp in format YYYYMMDDhhmm\n");
         printf("\n\t--help\n\t\tshow this help message and exit\n");
         printf("\n\t--version\n\t\tshow version information and exit\n");
@@ -47,6 +47,7 @@ void boop(char *filename) {
 
     FILE *fp;
     if (check_exists || (change_adate && !change_mdate)) {
+        // open in read to not change modification date
         fp = fopen(filename, "r");
     }
     else {
@@ -121,6 +122,7 @@ int main(int argc, char *argv[]) {
 
     int i;
     for (i = 1; i < argc; i++) {
+        // assume after first argument not starting with '-' is a filename
         if (*(*(argv + i)) != '-') {
             break;
         }
@@ -139,6 +141,7 @@ int main(int argc, char *argv[]) {
         }
         else if (strcmpi("-t", *(argv + i)) == 0) {
             i++;
+            // if argument after '-t' is another flag exit
             if (*(*(argv + i)) == '-') {
                 print_usage(TRUE);
                 exit(EXIT_FAILURE);
@@ -156,6 +159,8 @@ int main(int argc, char *argv[]) {
     for (; i < argc; i++) {
         boop(*(argv + i));
     }
+
+    free(timestamp);
 
     return EXIT_SUCCESS;
 }
