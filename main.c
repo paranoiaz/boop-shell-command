@@ -5,7 +5,7 @@
 #include <sys/utime.h>
 
 #define PROGRAM_NAME "boop"
-#define PROGRAM_VERSION "0.1.5"
+#define PROGRAM_VERSION "1.0.0"
 
 typedef enum { TRUE, FALSE } HelpFlag;
 
@@ -46,39 +46,25 @@ void boop(char *filename) {
     }
 
     FILE *fp;
-    if (check_exists || (change_adate && !change_mdate) || timestamp) {
-        // open in read mode to not change modification date
-        fp = fopen(filename, "r");
-    }
-    else {
-        // create file if it does not exist
-        fp = fopen(filename, "r");
-        if (!fp && change_mdate) {
-            print_usage(TRUE);
-            fclose(fp);
-            return;
-        }
-        
-        fclose(fp);
-        fp = fopen(filename, "w");
-    }
+    fp = fopen(filename, "r");
 
-    if (!fp) {
-        if (check_exists) {
-            printf("file %s does NOT exist\n", filename);
-        }
-        else {
-            print_usage(TRUE);
-        }
-
+    if (!fp && check_exists) {
+        printf("file %s does NOT exist\n", filename);
         fclose(fp);
         return;
     }
-
-    if (check_exists) {
+    else if (fp && check_exists) {
         printf("file %s does exist\n", filename);
         fclose(fp);
         return;
+    }
+
+    // create file if filepointer is null and no flags are used else open file and change mdate
+    if (!fp && (!check_exists && !change_mdate && !change_adate && !timestamp)) {
+        fp = fopen(filename, "w");
+    }
+    else if (fp && change_mdate) {
+        fp = fopen(filename, "w");
     }
 
     if (timestamp) {
@@ -160,7 +146,12 @@ int main(int argc, char *argv[]) {
         }
         else if (strcmpi("-t", *(argv + i)) == 0) {
             i++;
-            // if argument after '-t' is another flag exit
+            // check if no argument after '-t'
+            if (i == argc) {
+                print_usage(TRUE);
+                exit(EXIT_FAILURE);
+            }
+            // exit if argument after '-t' is a flag
             if (*(*(argv + i)) == '-') {
                 print_usage(TRUE);
                 exit(EXIT_FAILURE);
@@ -173,6 +164,12 @@ int main(int argc, char *argv[]) {
             print_usage(TRUE);
             exit(EXIT_FAILURE);
         }
+    }
+
+    // if no arguments are supplied exit
+    if (i == argc) {
+        print_usage(TRUE);
+        exit(EXIT_FAILURE);
     }
 
     for (; i < argc; i++) {
