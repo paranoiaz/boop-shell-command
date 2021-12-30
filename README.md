@@ -1,9 +1,9 @@
 # Boop Shell Command
-...
+Create and remove files and modify timestamps with a fast shell command.
 
 **Notes**
 
-...
+Compile boop using ```make``` then run ```make exec``` to get started. Add the absolute path of the directory with the executable in it to your PATH to be able to use the command anywhere. Use ```make clean``` to remove boop.
 
 **Usage**
 ```
