@@ -5,7 +5,7 @@
 #include <sys/utime.h>
 
 #define PROGRAM_NAME "boop"
-#define PROGRAM_VERSION "0.1.4"
+#define PROGRAM_VERSION "0.1.5"
 
 typedef enum { TRUE, FALSE } HelpFlag;
 
@@ -52,6 +52,14 @@ void boop(char *filename) {
     }
     else {
         // create file if it does not exist
+        fp = fopen(filename, "r");
+        if (!fp && change_mdate) {
+            print_usage(TRUE);
+            fclose(fp);
+            return;
+        }
+        
+        fclose(fp);
         fp = fopen(filename, "w");
     }
 
