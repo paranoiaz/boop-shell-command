@@ -5,7 +5,7 @@
 #include <sys/utime.h>
 
 #define PROGRAM_NAME "boop"
-#define PROGRAM_VERSION "0.1.3"
+#define PROGRAM_VERSION "0.1.4"
 
 typedef enum { TRUE, FALSE } HelpFlag;
 
@@ -46,66 +46,71 @@ void boop(char *filename) {
     }
 
     FILE *fp;
-    if (check_exists || (change_adate && !change_mdate)) {
+    if (check_exists || (change_adate && !change_mdate) || timestamp) {
         // open in read mode to not change modification date
         fp = fopen(filename, "r");
     }
     else {
+        // create file if it does not exist
         fp = fopen(filename, "w");
     }
 
-    if (fp) {
-        if (check_exists) {
-            printf("file %s does exist\n", filename);
-            fclose(fp);
-            return;
-        }
-
-        if (timestamp) {
-            struct tm tm_a = {0};
-            struct tm tm_m = {0};
-
-            char year[5] = {0};
-            char month[3] = {0};
-            char day[3] = {0};
-            char hour[3] = {0};
-            char minute[3] = {0};
-
-            strncpy(year, timestamp, 4);
-            strncpy(month, (timestamp + 4), 2);
-            strncpy(day, (timestamp + 6), 2);
-            strncpy(hour, (timestamp + 8), 2);
-            strncpy(minute, (timestamp + 10), 2);
-
-            // tm years start counting from 1900
-            tm_a.tm_year = tm_m.tm_year = atoi(year) - 1900;
-            // tm months range from 0 to 11
-            tm_a.tm_mon = tm_m.tm_mon = atoi(month) - 1;
-            tm_a.tm_mday = tm_m.tm_mday = atoi(day);
-            tm_a.tm_hour = tm_m.tm_hour = atoi(hour);
-            tm_a.tm_min = tm_m.tm_min = atoi(minute);
-
-            time_t epoch_a;
-            time_t epoch_m;
-            epoch_a = mktime(&tm_a);
-            epoch_m = mktime(&tm_m);
-
-            struct utimbuf ubuf;
-            ubuf.actime = epoch_a;
-            ubuf.modtime = epoch_m;
-
-            if (utime(filename, &ubuf) == -1) {
-                print_usage(TRUE);
-                exit(EXIT_FAILURE);
-            }
-        }
-    }
-    else {
+    if (!fp) {
         if (check_exists) {
             printf("file %s does NOT exist\n", filename);
         }
+        else {
+            print_usage(TRUE);
+        }
 
         fclose(fp);
+        return;
+    }
+
+    if (check_exists) {
+        printf("file %s does exist\n", filename);
+        fclose(fp);
+        return;
+    }
+
+    if (timestamp) {
+        struct tm tm_a = {0};
+        struct tm tm_m = {0};
+
+        char year[5] = {0};
+        char month[3] = {0};
+        char day[3] = {0};
+        char hour[3] = {0};
+        char minute[3] = {0};
+
+        strncpy(year, timestamp, 4);
+        strncpy(month, (timestamp + 4), 2);
+        strncpy(day, (timestamp + 6), 2);
+        strncpy(hour, (timestamp + 8), 2);
+        strncpy(minute, (timestamp + 10), 2);
+
+        // tm years start counting from 1900
+        tm_a.tm_year = tm_m.tm_year = atoi(year) - 1900;
+        // tm months range from 0 to 11
+        tm_a.tm_mon = tm_m.tm_mon = atoi(month) - 1;
+        tm_a.tm_mday = tm_m.tm_mday = atoi(day);
+        tm_a.tm_hour = tm_m.tm_hour = atoi(hour);
+        tm_a.tm_min = tm_m.tm_min = atoi(minute);
+
+        time_t epoch_a;
+        time_t epoch_m;
+        epoch_a = mktime(&tm_a);
+        epoch_m = mktime(&tm_m);
+
+        struct utimbuf ubuf;
+        ubuf.actime = epoch_a;
+        ubuf.modtime = epoch_m;
+
+        // if utime fails then current time is used
+        if (utime(filename, &ubuf) == -1) {
+            print_usage(TRUE);
+            exit(EXIT_FAILURE);
+        }
     }
 }
 
